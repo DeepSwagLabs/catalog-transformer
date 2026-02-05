@@ -202,10 +202,10 @@ class SageTransformer:
     def _build_included_decoration(self, row: pd.Series) -> str:
         """Build included decoration string."""
         parts = []
-        
+
         clr = row.get('PriceIncludeClr')
         if pd.notna(clr):
-            parts.append('Blank' if str(clr).lower() == 'blank' else str(clr).title())
+            parts.append('No Imprint' if str(clr).lower() == 'blank' else str(clr).title())
         
         side = row.get('PriceIncludeSide')
         if pd.notna(side):
