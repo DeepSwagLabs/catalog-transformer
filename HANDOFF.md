@@ -8,7 +8,34 @@
 
 ## TL;DR
 
-We're automating the manual product catalog update process for Creative Merchandise, a 20-year-old PHP/MySQL system. The catalog transformer is built and working. We're blocked on SSH access to the server to discover the database schema for direct imports.
+We're automating the manual product catalog update process for Creative Merchandise, a 20-year-old PHP/MySQL system. **TWO transformers are built and working:**
+
+1. **Sage transformer** - For supplier catalog updates (Illini, Ariel, HIT, etc.)
+2. **Replink transformer** - For daily inventory feeds (the $1,800 job Pat quoted)
+
+We're blocked on SSH access to discover the database schema for direct imports.
+
+---
+
+## BONUS: The $1,800 Job
+
+A custom project came in that's exactly what we built. Client wants:
+1. Daily feed → import products, enable/disable based on inventory
+2. Order export feed for fulfillment
+3. Tracking import to auto-update orders
+
+**Pat quoted $1,800 and 7-10 days. We built #1 in 10 minutes.**
+
+```bash
+# Test with the actual Replink feed
+python3 replink_transformer.py "/mnt/c/Users/jason/Downloads/replink_catalog_2026-01-14.txt" output.xlsx
+
+# Result: 4,729 products (3,318 enabled, 1,411 disabled)
+```
+
+The feed file is at: `/mnt/c/Users/jason/Downloads/replink_catalog_2026-01-14.txt`
+
+Items 2 & 3 (order export, tracking import) need the database schema to implement.
 
 ---
 
@@ -67,10 +94,30 @@ All committed to repo:
 
 | File | Purpose |
 |------|---------|
+| `catalog_transformer.py` | Sage format → CM format (for supplier updates) |
+| `replink_transformer.py` | Replink feed → CM format (the $1,800 job) |
 | `db_import.py` | Direct MySQL import - needs schema discovery |
 | `browser_import.py` | Playwright fallback - needs UI discovery |
 | `server_audit.sh` | Run first after SSH to map the system |
 | `SYSTEM_NOTES.md` | Architecture documentation |
+
+### 5. Tested Replink Transformer
+
+```bash
+python3 replink_transformer.py "/mnt/c/Users/jason/Downloads/replink_catalog_2026-01-14.txt" /tmp/out.xlsx
+
+# Output:
+# ✅ Saved 4729 products to /tmp/out.xlsx
+# ✅ 3318 enabled products → /tmp/out_ENABLED.xlsx
+# ⏸️  1411 disabled products → /tmp/out_DISABLED.xlsx
+```
+
+The Replink feed is pipe-delimited with 90+ columns including:
+- BrandName, ItemNumber, ShortName, SalesCopy
+- Multiple price tiers (MSRP, MAP, UserPrice, JobberPrice, DistributorPrice)
+- QtyAvailable (determines enabled/disabled)
+- ImageURL
+- Features 1-18
 
 ---
 
