@@ -99,6 +99,7 @@ All committed to repo:
 | `db_import.py` | Direct MySQL import - needs schema discovery |
 | `browser_import.py` | Playwright fallback - needs UI discovery |
 | `server_audit.sh` | Run first after SSH to map the system |
+| `image_handler.py` | Download/upload product images |
 | `SYSTEM_NOTES.md` | Architecture documentation |
 
 ### 5. Tested Replink Transformer
@@ -118,6 +119,27 @@ The Replink feed is pipe-delimited with 90+ columns including:
 - QtyAvailable (determines enabled/disabled)
 - ImageURL
 - Features 1-18
+
+### 6. Image Handler
+
+```bash
+# Test downloading images from Replink feed
+python3 image_handler.py /tmp/replink_output.xlsx --download-only
+
+# Downloads to /tmp/product_images/
+# Tested: 70550R_main.jpg (257KB), WM425_main.jpg (233KB), etc.
+```
+
+**Image sources:**
+- Replink: `ImageURL` column (one main image per product)
+- Sage: `NewPictureURL`, `NewBlankPictureURL` columns
+- Colors: Sage has `Colors` column (comma-separated text like "Navy Blue, Black")
+
+**TODO after SSH access:**
+- Find where images are stored on server (`/var/www/images/products/`?)
+- Find DB schema for image references (separate table? column in products?)
+- Implement SFTP upload or S3 upload
+- Handle color variants (may need separate image URLs per color)
 
 ---
 
