@@ -100,6 +100,7 @@ All committed to repo:
 | `browser_import.py` | Playwright fallback - needs UI discovery |
 | `server_audit.sh` | Run first after SSH to map the system |
 | `image_handler.py` | Download/upload product images |
+| `supplier_scraper.py` | Scrape images from supplier websites via Crawl4AI + Ollama |
 | `SYSTEM_NOTES.md` | Architecture documentation |
 
 ### 5. Tested Replink Transformer
@@ -140,6 +141,32 @@ python3 image_handler.py /tmp/replink_output.xlsx --download-only
 - Find DB schema for image references (separate table? column in products?)
 - Implement SFTP upload or S3 upload
 - Handle color variants (may need separate image URLs per color)
+
+### 7. Supplier Website Image Scraper
+
+For products without image URLs in the feed, scrape from supplier websites:
+
+```bash
+# Requires: Crawl4AI + Ollama (from deepswag infrastructure)
+# Check services
+python supplier_scraper.py --check-services --supplier ariel
+
+# Scrape single product
+python supplier_scraper.py --item-number ALB-AL23 --supplier ariel
+
+# Batch scrape
+python supplier_scraper.py --input products.xlsx --supplier ariel
+```
+
+**How it works:**
+1. Build product URL from item number + supplier pattern
+2. Crawl4AI fetches the page (with JS rendering)
+3. Ollama (local LLM) extracts image URLs from HTML
+4. Downloads main image, color variants, and gallery images
+
+**Supplier configs defined for:** Ariel, HIT, Illini, Gemline, Leeds
+
+**Integrates with deepswag:** Uses the same Crawl4AI infrastructure from `docs/progress/planned/crawl4ai.plan.md`
 
 ---
 
