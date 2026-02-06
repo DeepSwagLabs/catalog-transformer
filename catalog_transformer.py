@@ -313,7 +313,7 @@ class CatalogReconciler:
 
 def load_file(file_path_or_buffer, filename: str = None) -> pd.DataFrame:
     """Load Excel or CSV file from path or buffer."""
-    
+
     # Determine format
     if filename:
         ext = Path(filename).suffix.lower()
@@ -321,9 +321,24 @@ def load_file(file_path_or_buffer, filename: str = None) -> pd.DataFrame:
         ext = Path(file_path_or_buffer).suffix.lower()
     else:
         ext = '.xlsx'  # default assumption
-    
+
     if ext == '.csv':
-        return pd.read_csv(file_path_or_buffer)
+        # Try UTF-8 first, fall back to Windows-1252 (common for Sage exports)
+        for encoding in ['utf-8', 'cp1252', 'latin-1']:
+            try:
+                if isinstance(file_path_or_buffer, (str, Path)):
+                    return pd.read_csv(file_path_or_buffer, encoding=encoding)
+                else:
+                    file_path_or_buffer.seek(0)
+                    return pd.read_csv(file_path_or_buffer, encoding=encoding)
+            except UnicodeDecodeError:
+                continue
+        # Last resort - ignore errors
+        if isinstance(file_path_or_buffer, (str, Path)):
+            return pd.read_csv(file_path_or_buffer, encoding='utf-8', errors='replace')
+        else:
+            file_path_or_buffer.seek(0)
+            return pd.read_csv(file_path_or_buffer, encoding='utf-8', errors='replace')
     else:
         return pd.read_excel(file_path_or_buffer)
 
